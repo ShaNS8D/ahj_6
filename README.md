@@ -1,4 +1,2 @@
-# Webpack5
+[![Build status](https://ci.appveyor.com/api/projects/status/udug7x84wcmlmtot?svg=true)](https://ci.appveyor.com/project/ShaNS8D/ahj-6)
 
-[Руководство по настройке Webpack](https://webpack.js.org/guides/)
-[Руководство по настройке GitHub Actions](https://docs.github.com/en/actions/quickstart)
