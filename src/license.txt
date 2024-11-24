@@ -1,0 +1,21 @@
+visa-min.png
+  source: https://findicons.com/icon/451597/visa_straight_64px
+  
+  mir-min.png
+  source: https://icons8.ru/icon/59239/%D0%BC%D0%B8%D1%80
+
+discover-min.png
+  source: https://findicons.com/icon/554151/discover
+
+diners-club-min.png
+  source: https://icons-for-free.com/cash+checkout+diners+club+online+shopping+payment+method+service-1320191225170484422/
+
+
+american-express-min.png
+  source: https://findicons.com/icon/223574/american_express_curved
+
+jcb-min.png
+  source: https://findicons.com/icon/554156/jcb
+
+mastercard-min.png
+  source: https://findicons.com/icon/223570/mastercard_straight
