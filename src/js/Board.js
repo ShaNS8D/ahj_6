@@ -1,17 +1,17 @@
 export default class Board {
-	constructor(container) {
-		this.container = container;
-		this.board = null;
-	}
+  constructor(container) {
+    this.container = container;
+    this.board = null;
+  }
 
-	createBoard() {
-		this.board = document.createElement('div');
-		this.board.classList.add('board');
-		this.bindToDOM();
-	}
+  createBoard() {
+    this.board = document.createElement("div");
+    this.board.classList.add("board");
+    this.bindToDOM();
+  }
 
-	static get markup() {
-		return `
+  static get markup() {
+    return `
 	<div class="cell cell-todo" data-cell="todo">
 		<h3 class="title">todo</h3>
 		<button class="button button_add">And another card</button>
@@ -26,14 +26,14 @@ export default class Board {
 <div class="pin__list"></div>
 	</div>
 `;
-	}
+  }
 
-	bindToDOM() {
-		this.container.insertAdjacentHTML('afterbegin', this.constructor.markup);
-	}
+  bindToDOM() {
+    this.container.insertAdjacentHTML("afterbegin", this.constructor.markup);
+  }
 
-	getBoard() {
-		this.createBoard();
-		return this.board;
-	}
+  getBoard() {
+    this.createBoard();
+    return this.board;
+  }
 }
