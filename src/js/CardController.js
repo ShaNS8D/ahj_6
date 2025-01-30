@@ -72,7 +72,6 @@ export default class CardController {
   }
 
   onClickPinCard(e) {
-    // закрепить карточку на доске
     e.preventDefault();
     this.card = new Card();
     const formArea = document.querySelector(".form-text");
@@ -121,7 +120,6 @@ export default class CardController {
     if (!target) {
       return;
     }
-
     const btn = target.querySelector(".task__del");
     btn.classList.toggle("hidden");
   }
@@ -138,29 +136,21 @@ export default class CardController {
     if (e.target.classList.contains("task__del")) {
       return;
     }
-
     const dragElement = e.target.closest(".pinned__card");
-
     if (!dragElement) {
       return;
     }
-
     e.preventDefault();
-
     document.body.style.cursor = "grabbing";
+    // console.log(dragElement);
     this.dropEl = dragElement.cloneNode(true);
-
     const { width, height, left, top } = dragElement.getBoundingClientRect();
-
     this.coordX = e.clientX - left;
     this.coordY = e.clientY - top;
-
     this.dropEl.classList.add("dragged");
     this.dropEl.style.width = `${width}px`;
     this.dropEl.style.height = `${height}px`;
-
     document.body.appendChild(this.dropEl);
-
     this.dropEl.style.top = `${top}px`;
     this.dropEl.style.left = `${left}px`;
     this.dragEl = dragElement;
@@ -172,9 +162,7 @@ export default class CardController {
     if (!this.dropEl) {
       return;
     }
-
     document.body.style.cursor = "grabbing";
-
     this.dropEl.style.left = `${e.pageX - this.coordX}px`;
     this.dropEl.style.top = `${e.pageY - this.coordY}px`;
   }
@@ -185,38 +173,28 @@ export default class CardController {
     }
     e.preventDefault();
     document.body.style.cursor = "auto";
-
     const closest = document
       .elementFromPoint(e.clientX, e.clientY)
       .closest(".pinnes__card");
-
     const trappingCell = e.target.closest(".cell");
-
     if (!trappingCell) {
       this.dropEl.remove();
       this.dragEl.classList.remove("hidden");
       return;
     }
-
     trappingCell.insertBefore(this.dragEl, closest);
-
     const currentDragEl = this.dragEl.querySelector(".task__title").textContent;
-
     const pinIndex = this.state.findIndex(
       (item) => item.description === currentDragEl,
     );
-
     this.state.splice(pinIndex, 1);
     this.storage.save(this.state);
-
     const pinLoad = {
       description: currentDragEl,
       type: trappingCell.dataset.cell,
     };
-
     this.state.push(pinLoad);
     this.storage.save(this.state);
-
     this.dragEl.classList.remove("hidden");
     this.dropEl.remove();
     this.dropEl = null;
@@ -226,7 +204,6 @@ export default class CardController {
     if (!this.dropEl) {
       return;
     }
-
     this.dragEl.classList.remove("hidden");
     this.dropEl.remove();
     this.dropEl = null;
@@ -240,7 +217,6 @@ export default class CardController {
     const boxPin = this.searchPin(pinCards);
 
     boxPin.forEach((objectEl) => {
-      /* eslint no-param-reassign: "error" */
       objectEl[Symbol.iterator] = this.generatorMethod.bind(null, objectEl);
       for (const value of objectEl) {
         if (boxCell.includes(value)) {

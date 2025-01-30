@@ -23,7 +23,7 @@ export default class Board {
 	<div class="cell cell-done" data-cell="done">
 		<h3 class="title">done</h3>
 		<button class="button button_add">And another card</button>
-<div class="pin__list"></div>
+  <div class="pin__list"></div>
 	</div>
 `;
   }
