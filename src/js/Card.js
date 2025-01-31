@@ -17,10 +17,9 @@ export default class Card {
   }
 
   bindToDOM() {
-    this.cell = document.querySelector(".cell__active");
+    this.cell = document.querySelector(".cards-container");
     this.pin = this.addTask(this.task);
     this.cell.insertAdjacentHTML("beforeend", this.pin);
-    this.cell.classList.remove("cell__active");
   }
 
   addTask() {

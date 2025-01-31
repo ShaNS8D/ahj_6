@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import Card from "./Card";
 import Storage from "./Storage";
 
@@ -5,6 +6,7 @@ export default class CardController {
   constructor(board) {
     this.board = board;
     this.state = [];
+    this.placeholder = null;
   }
 
   init() {
@@ -28,29 +30,26 @@ export default class CardController {
 
   static get creatingCard() {
     return `
-  <div class="content">
-      <div class="block__button">
-        <button class="form-button__add">add</button>
-        <button class="form-button__del">X</button>
+      <div class="content">
+        <div class="block__button">
+          <button class="form-button__add">add</button>
+          <button class="form-button__del">X</button>
+        </div>
+        <div class="form">
+          <form class="form-area">
+            <textarea class="form-text" rows="5" placeholder="---"></textarea>
+          </form>
+        </div>
       </div>
-      <div class="form">
-        <form class="form-area">
-          <textarea class="form-text" rows="5" placeholder="---"></textarea>
-        </form>
-      </div>
-    </div>
-`;
+    `;
   }
 
   onClickAddCard() {
     this.addCardBtn = document.querySelectorAll(".button_add");
     this.addCardBtn.forEach((item) => {
       item.addEventListener("click", () => {
-        item.parentElement.classList.add("cell__active");
-        item.parentElement.insertAdjacentHTML(
-          "beforeend",
-          this.constructor.creatingCard,
-        );
+        const cardsContainer = item.parentElement.querySelector('.cards-container');
+        cardsContainer.insertAdjacentHTML("beforeend", this.constructor.creatingCard);
         item.classList.add("hidden");
       });
     });
@@ -62,11 +61,10 @@ export default class CardController {
       return;
     }
     if (e.target.classList.contains("form-button__del")) {
-      e.target.parentElement.closest(".content").remove();
+      e.target.parentElement.closest(".form").remove();
     }
 
     document.querySelectorAll(".button_add").forEach((item) => {
-      item.classList.contains("hidden");
       item.classList.remove("hidden");
     });
   }
@@ -81,7 +79,9 @@ export default class CardController {
     ) {
       return;
     }
-    const type = e.currentTarget.querySelector(".cell__active").dataset.cell;
+
+    const cardsContainer = e.currentTarget.querySelector('.cards-container');
+    const type = cardsContainer.dataset.cell;
     this.card.init();
 
     const pinLoad = {
@@ -101,17 +101,13 @@ export default class CardController {
 
   deletePinnedCard(e) {
     e.preventDefault();
-
     if (!e.target.classList.contains("task__del")) {
       return;
     }
-
     const pin = e.target.previousElementSibling.textContent;
     const pinItem = this.state.findIndex((item) => item.description === pin);
-
     this.state.splice(pinItem, 1);
     this.storage.save(this.state);
-
     e.target.parentElement.remove();
   }
 
@@ -133,77 +129,108 @@ export default class CardController {
   }
 
   dragDown(e) {
-    if (e.target.classList.contains("task__del")) {
-      return;
-    }
-    const dragElement = e.target.closest(".pinned__card");
-    if (!dragElement) {
-      return;
-    }
+    if (e.target.classList.contains('task__del')) { return; }
+    const dragElement = e.target.closest('.pinned__card');
+    if (!dragElement) { return; }
     e.preventDefault();
-    document.body.style.cursor = "grabbing";
-    // console.log(dragElement);
+    document.body.style.cursor = 'grabbing';
     this.dropEl = dragElement.cloneNode(true);
     const { width, height, left, top } = dragElement.getBoundingClientRect();
     this.coordX = e.clientX - left;
     this.coordY = e.clientY - top;
-    this.dropEl.classList.add("dragged");
+    this.dropEl.classList.add('dragged');
     this.dropEl.style.width = `${width}px`;
     this.dropEl.style.height = `${height}px`;
     document.body.appendChild(this.dropEl);
     this.dropEl.style.top = `${top}px`;
     this.dropEl.style.left = `${left}px`;
-    this.dragEl = dragElement;
-    this.dragEl.classList.add("hidden");
+    this.dragEl = dragElement;  
+    this.dragEl.classList.add('hidden');
   }
-
+  
   dragMove(e) {
     e.preventDefault();
-    if (!this.dropEl) {
-      return;
-    }
-    document.body.style.cursor = "grabbing";
+    if (!this.dropEl) { return; }
+    document.body.style.cursor = 'grabbing';
     this.dropEl.style.left = `${e.pageX - this.coordX}px`;
     this.dropEl.style.top = `${e.pageY - this.coordY}px`;
+
+    const cell = document.elementFromPoint(e.clientX, e.clientY).closest('.cards-container');
+    if (!cell) { return; }
+
+    if (!this.placeholder) {
+      this.placeholder = document.createElement('div');
+      this.placeholder.className = 'placeholder';
+    }
+
+    const sibling = document.elementFromPoint(e.clientX, e.clientY).closest('.pinned__card');
+
+    if (sibling) {
+      const rect = sibling.getBoundingClientRect();
+      const offsetY = e.clientY - rect.top;
+      const halfHeight = rect.height / 2;
+      
+      if (offsetY < halfHeight) {
+        cell.insertBefore(this.placeholder, sibling);
+      } else {
+        cell.insertBefore(this.placeholder, sibling.nextElementSibling);
+      }
+    } else {
+      cell.prepend(this.placeholder);
+    }
+    setTimeout(() => {
+      this.placeholder.style.height = `${this.dropEl.offsetHeight}px`;
+      this.placeholder.style.opacity = '1'; 
+    }, 10);
   }
 
   dragUp(e) {
-    if (!this.dragEl || !this.dropEl) {
-      return;
-    }
+    if (!this.dragEl || !this.dropEl) { return; }
     e.preventDefault();
-    document.body.style.cursor = "auto";
-    const closest = document
-      .elementFromPoint(e.clientX, e.clientY)
-      .closest(".pinnes__card");
-    const trappingCell = e.target.closest(".cell");
-    if (!trappingCell) {
-      this.dropEl.remove();
-      this.dragEl.classList.remove("hidden");
-      return;
+    document.body.style.cursor = 'auto';
+
+    if (this.placeholder) {
+      this.placeholder.remove();
+      this.placeholder = null;
     }
-    trappingCell.insertBefore(this.dragEl, closest);
-    const currentDragEl = this.dragEl.querySelector(".task__title").textContent;
-    const pinIndex = this.state.findIndex(
-      (item) => item.description === currentDragEl,
-    );
-    this.state.splice(pinIndex, 1);
-    this.storage.save(this.state);
+
+    const trappingCell = e.target.closest('.cards-container');
+    if (!trappingCell) { this.dropEl.remove(); return; }
+
+    const closestCard = document.elementFromPoint(e.clientX, e.clientY).closest('.pinned__card');
+
+    if (!closestCard) {
+      trappingCell.appendChild(this.dragEl);
+    } else {
+      let rect = closestCard.getBoundingClientRect();
+      let offsetY = e.clientY - rect.top;
+      let halfHeight = rect.height / 2;
+
+      if (offsetY < halfHeight) {
+        trappingCell.insertBefore(this.dragEl, closestCard);
+      } else if (closestCard.nextElementSibling) {
+        trappingCell.insertBefore(this.dragEl, closestCard.nextElementSibling);
+      } else {
+        trappingCell.appendChild(this.dragEl);
+      }
+    }
+
+    const currentDragEl = this.dragEl.querySelector('.task__title').textContent;
+    const pinIndex = this.state.findIndex(item => item.description === currentDragEl);
+    if (pinIndex !== -1) {
+      this.state.splice(pinIndex, 1);
+    }
     const pinLoad = {
       description: currentDragEl,
       type: trappingCell.dataset.cell,
     };
     this.state.push(pinLoad);
     this.storage.save(this.state);
-    this.dragEl.classList.remove("hidden");
-    this.dropEl.remove();
-    this.dropEl = null;
+    this.dragLeave();
   }
-
+  
   dragLeave() {
-    if (!this.dropEl) {
-      return;
-    }
+    if (!this.dropEl) { return; }
     this.dragEl.classList.remove("hidden");
     this.dropEl.remove();
     this.dropEl = null;
@@ -212,7 +239,7 @@ export default class CardController {
 
   loadState(pinCards) {
     const card = new Card();
-    const cells = document.querySelectorAll(".cell");
+    const cells = document.querySelectorAll(".cards-container");
     const boxCell = this.searchCell(cells);
     const boxPin = this.searchPin(pinCards);
 
