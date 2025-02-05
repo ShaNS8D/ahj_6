@@ -54,7 +54,7 @@ class Card {
 				<span class="task__title">${task}</span>
 				<button class="task__del hidden"></button>
 			</div>
-`;
+    `;
   }
   bindToDOM() {
     this.cell = document.querySelector(".cards-container");
@@ -138,7 +138,7 @@ class CardController {
       return;
     }
     if (e.target.classList.contains("form-button__del")) {
-      e.target.parentElement.closest(".form").remove();
+      e.target.parentElement.closest(".content").remove();
     }
     document.querySelectorAll(".button_add").forEach(item => {
       item.classList.remove("hidden");
@@ -193,15 +193,14 @@ class CardController {
     btn.classList.add("hidden");
   }
   dragDown(e) {
-    if (e.target.classList.contains('task__del')) {
-      return;
-    }
+    if (e.target.classList.contains('task__del')) return;
     const dragElement = e.target.closest('.pinned__card');
-    if (!dragElement) {
-      return;
-    }
+    if (!dragElement) return;
     e.preventDefault();
     document.body.style.cursor = 'grabbing';
+    this.placeholder = document.createElement('div');
+    this.placeholder.className = 'placeholder';
+    this.placeholder.style.height = `${dragElement.offsetHeight}px`;
     this.dropEl = dragElement.cloneNode(true);
     const {
       width,
@@ -232,10 +231,6 @@ class CardController {
     if (!cell) {
       return;
     }
-    if (!this.placeholder) {
-      this.placeholder = document.createElement('div');
-      this.placeholder.className = 'placeholder';
-    }
     const sibling = document.elementFromPoint(e.clientX, e.clientY).closest('.pinned__card');
     if (sibling) {
       const rect = sibling.getBoundingClientRect();
@@ -249,10 +244,6 @@ class CardController {
     } else {
       cell.prepend(this.placeholder);
     }
-    setTimeout(() => {
-      this.placeholder.style.height = `${this.dropEl.offsetHeight}px`;
-      this.placeholder.style.opacity = '1';
-    }, 10);
   }
   dragUp(e) {
     if (!this.dragEl || !this.dropEl) {
@@ -264,10 +255,13 @@ class CardController {
       this.placeholder.remove();
       this.placeholder = null;
     }
-    const trappingCell = e.target.closest('.cards-container');
+    let trappingCell = e.target.closest('.cards-container') || e.target.closest('.cell');
     if (!trappingCell) {
       this.dropEl.remove();
       return;
+    }
+    if (trappingCell.classList.contains('cell')) {
+      trappingCell = trappingCell.querySelector('.cards-container');
     }
     const closestCard = document.elementFromPoint(e.clientX, e.clientY).closest('.pinned__card');
     if (!closestCard) {
