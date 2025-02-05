@@ -7,7 +7,7 @@
 body {
   display: flex;
   flex-wrap: wrap;
-  background: mediumaquamarine;
+  background: rgb(55, 145, 201);
   font-family: sans-serif;
 }
 
@@ -17,7 +17,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  width: 80%;
+  width: 100%;
   background-color: lightgray;
 }
 
@@ -193,9 +193,9 @@ body {
 
 .pinned__card.dragged {
   position: absolute;
-  /* z-index: 999; */
+  z-index: 999;
   pointer-events: none;
-  background: lightblue;
+  background: rgb(109, 117, 241);
 }
 
 .hidden {

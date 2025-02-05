@@ -61,7 +61,7 @@ export default class CardController {
       return;
     }
     if (e.target.classList.contains("form-button__del")) {
-      e.target.parentElement.closest(".form").remove();
+      e.target.parentElement.closest(".content").remove();
     }
 
     document.querySelectorAll(".button_add").forEach((item) => {
@@ -129,11 +129,16 @@ export default class CardController {
   }
 
   dragDown(e) {
-    if (e.target.classList.contains('task__del')) { return; }
+    if (e.target.classList.contains('task__del')) return;
     const dragElement = e.target.closest('.pinned__card');
-    if (!dragElement) { return; }
+    if (!dragElement) return;
     e.preventDefault();
     document.body.style.cursor = 'grabbing';
+
+    this.placeholder = document.createElement('div');
+    this.placeholder.className = 'placeholder';
+    this.placeholder.style.height = `${dragElement.offsetHeight}px`;
+
     this.dropEl = dragElement.cloneNode(true);
     const { width, height, left, top } = dragElement.getBoundingClientRect();
     this.coordX = e.clientX - left;
@@ -146,7 +151,7 @@ export default class CardController {
     this.dropEl.style.left = `${left}px`;
     this.dragEl = dragElement;  
     this.dragEl.classList.add('hidden');
-  }
+}
   
   dragMove(e) {
     e.preventDefault();
@@ -154,14 +159,8 @@ export default class CardController {
     document.body.style.cursor = 'grabbing';
     this.dropEl.style.left = `${e.pageX - this.coordX}px`;
     this.dropEl.style.top = `${e.pageY - this.coordY}px`;
-
     const cell = document.elementFromPoint(e.clientX, e.clientY).closest('.cards-container');
     if (!cell) { return; }
-
-    if (!this.placeholder) {
-      this.placeholder = document.createElement('div');
-      this.placeholder.className = 'placeholder';
-    }
 
     const sibling = document.elementFromPoint(e.clientX, e.clientY).closest('.pinned__card');
 
@@ -178,10 +177,6 @@ export default class CardController {
     } else {
       cell.prepend(this.placeholder);
     }
-    setTimeout(() => {
-      this.placeholder.style.height = `${this.dropEl.offsetHeight}px`;
-      this.placeholder.style.opacity = '1'; 
-    }, 10);
   }
 
   dragUp(e) {
@@ -194,11 +189,17 @@ export default class CardController {
       this.placeholder = null;
     }
 
-    const trappingCell = e.target.closest('.cards-container');
-    if (!trappingCell) { this.dropEl.remove(); return; }
+    let trappingCell = e.target.closest('.cards-container') || e.target.closest('.cell');
+    if (!trappingCell) {
+        this.dropEl.remove();
+        return;
+    }
+
+    if (trappingCell.classList.contains('cell')) {
+        trappingCell = trappingCell.querySelector('.cards-container');
+    }
 
     const closestCard = document.elementFromPoint(e.clientX, e.clientY).closest('.pinned__card');
-
     if (!closestCard) {
       trappingCell.appendChild(this.dragEl);
     } else {

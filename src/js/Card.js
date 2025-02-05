@@ -13,7 +13,7 @@ export default class Card {
 				<span class="task__title">${task}</span>
 				<button class="task__del hidden"></button>
 			</div>
-`;
+    `;
   }
 
   bindToDOM() {
