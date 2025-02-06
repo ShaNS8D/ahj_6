@@ -7,9 +7,9 @@ export default class Card {
     this.bindToDOM();
   }
 
-  static template(task) {
+  static template(task, id, type) {
     return `
-			<div class="pinned__card ">
+			<div class="pinned__card " data-id=${id}_${type}>
 				<span class="task__title">${task}</span>
 				<button class="task__del hidden"></button>
 			</div>
