@@ -91,7 +91,7 @@ class CardController {
     this.board = board;
     this.state = [];
     this.placeholder = null;
-    this.dragEl = null;
+    // this.dragEl = null;
   }
   init() {
     this.board.getBoard();
@@ -103,9 +103,9 @@ class CardController {
     this.container.addEventListener("mouseover", e => this.onMouseOver(e));
     this.container.addEventListener("mouseout", e => this.onMouseOut(e));
     this.container.addEventListener("mousedown", e => this.dragDown(e));
-    // this.container.addEventListener("mousemove", (e) => this.dragMove(e));
-    // this.container.addEventListener("mouseup", (e) => this.dragUp(e));
-    // this.container.addEventListener("mouseleave", (e) => this.dragLeave(e));
+    this.container.addEventListener("mousemove", e => this.dragMove(e));
+    this.container.addEventListener("mouseup", e => this.dragUp(e));
+    this.container.addEventListener("mouseleave", e => this.dragLeave(e));
     this.storage = new Storage();
     this.state = this.storage.getPinCards();
     this.loadState(this.state);
@@ -124,6 +124,11 @@ class CardController {
         </div>
       </div>
     `;
+  }
+  getMargin(drag) {
+    if (drag) {
+      return window.getComputedStyle(drag)["margin-top"];
+    }
   }
   onClickAddCard() {
     this.addCardBtn = document.querySelectorAll(".button_add");
@@ -200,6 +205,9 @@ class CardController {
       return;
     }
     const dragElement = e.target.closest('.pinned__card');
+    // const margin = this.getMargin(dragElement);
+    // const marginNumber = +margin.replace(/[^0-9]/g, '');
+
     if (!dragElement) return;
     e.preventDefault();
     document.body.style.cursor = 'grabbing';
@@ -210,21 +218,9 @@ class CardController {
       left,
       top
     } = dragElement.getBoundingClientRect();
-    console.log(dragElement.getBoundingClientRect());
-    const elementAtCursor = document.elementFromPoint(e.clientX, e.clientY);
-    console.log(elementAtCursor.offsetLeft);
-    console.log(elementAtCursor); //определили элемент, теперь нужны координаты курсора на элементе
-
-    console.log('width >>>>>>>>>>', width);
-    console.log('height >>>>>>>>>>', height);
-    console.log('left >>>>>>>>>>', left);
-    console.log('top >>>>>>>>>>', top);
+    //координаты курсора мыши на объекте в момент перетаскивания
     this.coordX = e.clientX - left;
     this.coordY = e.clientY - top;
-    console.log('e.clientX >>>>>>>>>>', e.clientX);
-    console.log('e.clientY >>>>>>>>>>', e.clientY);
-    console.log('this.coordX >>>>>>>>>>', this.coordX);
-    console.log('this.coordY >>>>>>>>>>', this.coordY);
     if (!this.placeholder) {
       this.placeholder = document.createElement('div');
       this.placeholder.className = 'placeholder';
@@ -233,104 +229,97 @@ class CardController {
       this.dragEl.before(this.placeholder);
     }
     this.dragEl.classList.add('dragged');
-    this.dragEl.style.top = `${this.coordY}px`;
-    this.dragEl.style.left = `${this.coordX}px`;
+    this.dragEl.style.top = `${top - 5}px`;
+    this.dragEl.style.left = `${left}px`;
     // задаем размеры такие же
     this.dragEl.style.width = `${width}px`;
     this.dragEl.style.height = `${height}px`;
-    // document.body.appendChild(this.dropEl);
-    // 
-    // this.dragEl = dragElement;  
-    // this.dragEl.classList.add('hidden');
   }
+  dragMove(e) {
+    e.preventDefault();
+    if (!this.dragEl) {
+      return;
+    }
+    document.body.style.cursor = 'grabbing';
+    this.dragEl.style.left = `${e.pageX - this.coordX}px`;
+    this.dragEl.style.top = `${e.pageY - this.coordY}px`;
+    const targetCard = document.elementFromPoint(e.clientX, e.clientY).closest(".cell");
+    const cell1 = targetCard && targetCard.querySelector(".cards-container");
+    const sibling = document.elementFromPoint(e.clientX, e.clientY).closest('.pinned__card');
+    if (!cell1) {
+      return;
+    }
+    if (cell1 && cell1.children.length > 0) {
+      if (sibling) {
+        const rect = sibling.getBoundingClientRect();
+        const offsetY = e.clientY - rect.top;
+        const halfHeight = rect.height / 2;
+        if (offsetY < halfHeight) {
+          cell1.insertBefore(this.placeholder, sibling);
+        } else {
+          cell1.insertBefore(this.placeholder, sibling.nextElementSibling);
+        }
+      }
+    } else {
+      cell1.prepend(this.placeholder);
+    }
+  }
+  dragUp(e) {
+    if (!this.dragEl || !this.placeholder) {
+      return;
+    }
+    e.preventDefault();
+    document.body.style.cursor = 'auto';
+    const targetCard = document.elementFromPoint(e.clientX, e.clientY).closest(".cell");
+    const cell1 = targetCard && targetCard.querySelector(".cards-container");
+    const sibling = document.elementFromPoint(e.clientX, e.clientY).closest('.pinned__card');
+    if (!cell1) {
+      return;
+    }
+    if (cell1.children.length > 0) {
+      if (sibling) {
+        const rect = sibling.getBoundingClientRect();
+        const offsetY = e.clientY - rect.top;
+        const halfHeight = rect.height / 2;
+        if (offsetY < halfHeight) {
+          cell1.insertBefore(this.dragEl, sibling);
+        } else {
+          cell1.insertBefore(this.dragEl, sibling.nextElementSibling);
+        }
+      }
+    } else {
+      cell1.prepend(this.dragEl);
+    }
+    // console.log(this.dragEl);
+    // console.log('cell1',cell1);
 
-  // dragMove(e) {
-  //   e.preventDefault();
-  //   if (!this.dragEl) { return; }
-  //   // console.log();
-
-  //   document.body.style.cursor = 'grabbing';
-  //   this.dropEl.style.left = `${e.pageX - this.coordX}px`;
-  //   this.dropEl.style.top = `${e.pageY - this.coordY}px`;
-  //   const cell = document.elementFromPoint(e.clientX, e.clientY).closest('.cards-container');
-  //   if (!cell) { return; }
-
-  //   const sibling = document.elementFromPoint(e.clientX, e.clientY).closest('.pinned__card');
-
-  //   if (sibling) {
-  //     const rect = sibling.getBoundingClientRect();
-  //     const offsetY = e.clientY - rect.top;
-  //     const halfHeight = rect.height / 2;
-
-  //     if (offsetY < halfHeight) {
-  //       cell.insertBefore(this.placeholder, sibling);
-  //     } else {
-  //       cell.insertBefore(this.placeholder, sibling.nextElementSibling);
-  //     }
-  //   } else {
-  //     cell.prepend(this.placeholder);
-  //   }
-  // }
-
-  // dragUp(e) {
-  //   if (!this.dragEl || !this.dropEl) { return; }
-  //   e.preventDefault();
-  //   document.body.style.cursor = 'auto';
-
-  //   if (this.placeholder) {
-  //     this.placeholder.remove();
-  //     this.placeholder = null;
-  //   }
-
-  //   let trappingCell = e.target.closest('.cards-container') || e.target.closest('.cell');
-  //   if (!trappingCell) {
-  //       this.dropEl.remove();
-  //       return;
-  //   }
-
-  //   if (trappingCell.classList.contains('cell')) {
-  //       trappingCell = trappingCell.querySelector('.cards-container');
-  //   }
-
-  //   const closestCard = document.elementFromPoint(e.clientX, e.clientY).closest('.pinned__card');
-  //   if (!closestCard) {
-  //     trappingCell.appendChild(this.dragEl);
-  //   } else {
-  //     let rect = closestCard.getBoundingClientRect();
-  //     let offsetY = e.clientY - rect.top;
-  //     let halfHeight = rect.height / 2;
-
-  //     if (offsetY < halfHeight) {
-  //       trappingCell.insertBefore(this.dragEl, closestCard);
-  //     } else if (closestCard.nextElementSibling) {
-  //       trappingCell.insertBefore(this.dragEl, closestCard.nextElementSibling);
-  //     } else {
-  //       trappingCell.appendChild(this.dragEl);
-  //     }
-  //   }
-
-  //   const currentDragEl = this.dragEl.querySelector('.task__title').textContent;
-  //   const pinIndex = this.state.findIndex(item => item.description === currentDragEl);
-  //   if (pinIndex !== -1) {
-  //     this.state.splice(pinIndex, 1);
-  //   }
-  //   const pinLoad = {
-  //     description: currentDragEl,
-  //     type: trappingCell.dataset.cell,
-  //   };
-  //   this.state.push(pinLoad);
-  //   this.storage.save(this.state);
-  //   this.dragLeave();
-  // }
-
-  // dragLeave() {
-  //   if (!this.dropEl) { return; }
-  //   this.dragEl.classList.remove("hidden");
-  //   this.dropEl.remove();
-  //   this.dropEl = null;
-  //   this.dragEl = null;
-  // }
-
+    this.dragEl.classList.remove('dragged');
+    this.dragEl.setAttribute('style', '');
+    const currentDragEl = this.dragEl.querySelector('.task__title').textContent;
+    const pinIndex = this.state.findIndex(item => item.description === currentDragEl);
+    if (pinIndex !== -1) {
+      this.state.splice(pinIndex, 1);
+    }
+    const pinLoad = {
+      description: currentDragEl,
+      type: cell1.dataset.cell
+    };
+    this.state.push(pinLoad);
+    this.storage.save(this.state);
+    if (this.placeholder) {
+      this.placeholder.remove();
+      this.placeholder = null;
+    }
+    this.dragLeave();
+  }
+  dragLeave() {
+    if (!this.dragEl) {
+      return;
+    }
+    this.dragEl.classList.remove('dragged');
+    // this.dragEl.remove();
+    this.dragEl = null;
+  }
   loadState(pinCards) {
     const card = new Card();
     const cells = document.querySelectorAll(".cards-container");
