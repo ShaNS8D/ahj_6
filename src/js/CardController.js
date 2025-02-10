@@ -6,8 +6,6 @@ export default class CardController {
   constructor(board) {
     this.board = board;
     this.state = [];
-    // this.placeholder = null;
-    // this.dragEl = null;
   }
 
   init() {
@@ -54,8 +52,10 @@ export default class CardController {
   onClickAddCard() {
     this.addCardBtn = document.querySelectorAll(".button_add");
     this.addCardBtn.forEach((item) => {
-      item.addEventListener("click", () => {
-        const cardsContainer = item.parentElement.querySelector('.cards-container');
+      item.addEventListener("click", () => {        
+        const cell = item.closest(".cell");        
+        const cardsContainer = cell.querySelector('.cards-container');
+        cardsContainer.classList.add("cell__active");
         cardsContainer.insertAdjacentHTML("beforeend", this.constructor.creatingCard);
         item.classList.add("hidden");
       });
@@ -79,35 +79,21 @@ export default class CardController {
   onClickPinCard(e) {
     e.preventDefault();
     this.card = new Card();
-    const formArea = document.querySelector(".form-text");
-    
+    const formArea = document.querySelector(".form-text");    
     if (
       !e.target.classList.contains("form-button__add") ||
       formArea.value === ""
     ) {
       return;
     }   
-    const targetCell = e.target.closest(".cell");    
-    const cardsContainer = targetCell.querySelector('.cards-container');
-    const type = cardsContainer.dataset.cell;
-    this.card.init();
-    
-    // const pinLoad = {
-    //   description: this.card.task,
-    //   type,
-    // };
-    //  this.state.push(pinLoad);
-
-    // Найти группу с соответствующим типом
+    const type = e.currentTarget.querySelector('.cell__active').dataset.cell;
+    this.card.init();  
     const groupIndex = this.state.findIndex(group => group.type === type);
-
-    if (groupIndex !== -1) {
-      // Если группа найдена, добавляем карточку в массив cards
+    if (groupIndex !== -1) {      
       this.state[groupIndex].cards.push({
         description: this.card.task
       });
-    } else {
-      // Если группа не найдена, создаем новую группу
+    } else {      
       this.state.push({
         type,
         cards: [{
@@ -116,14 +102,11 @@ export default class CardController {
       });
     }
     this.storage.save(this.state);
-
     e.target.parentElement.closest(".content").remove();
-
     document.querySelectorAll(".button_add").forEach((item) => {
       item.classList.contains("hidden");
       item.classList.remove("hidden");
     });
-    // this.loadState(this.state);
   }
 
   deletePinnedCard(e) {
@@ -156,7 +139,11 @@ export default class CardController {
   }
 
   onMouseOut(e) {
-    const btn = e.target.querySelector(".task__del");
+    const target = e.target.closest(".pinned__card");
+    if (!target) {
+      return;
+    }
+    const btn = target.querySelector(".task__del");
     if (!btn) {
       return;
     }
@@ -166,22 +153,16 @@ export default class CardController {
   dragDown(e) {    
     if (e.target.classList.contains('task__del')) {return;}
     const dragElement = e.target.closest('.pinned__card');
-    // const margin = this.getMargin(dragElement);
-    // const marginNumber = +margin.replace(/[^0-9]/g, '');
-    
     if (!dragElement) return;
     e.preventDefault();
     document.body.style.cursor = 'grabbing';
     this.dragEl = dragElement;
     const { width, height, left, top } = dragElement.getBoundingClientRect();
-    //координаты курсора мыши на объекте в момент перетаскивания
     this.coordX = e.clientX - left;
-    this.coordY = e.clientY - top;
-   
+    this.coordY = e.clientY - top;   
     if (!this.placeholder) {
       this.placeholder = document.createElement('div');
       this.placeholder.className = 'placeholder';
-      this.placeholder.setAttribute('data-id', dragElement.dataset.id);
       this.placeholder.style.width = `${width}px`;
       this.placeholder.style.height = `${height}px`;
       this.dragEl.before(this.placeholder);
@@ -189,7 +170,6 @@ export default class CardController {
     this.dragEl.classList.add('dragged');
     this.dragEl.style.top = `${top - 5}px`;
     this.dragEl.style.left = `${left}px`;
-    // задаем размеры такие же
     this.dragEl.style.width = `${width}px`;
     this.dragEl.style.height = `${height}px`;
 }
@@ -198,17 +178,14 @@ export default class CardController {
     e.preventDefault();
     if (!this.dragEl) { return; }    
     document.body.style.cursor = 'grabbing';
-    
     this.dragEl.style.left = `${e.pageX - this.coordX}px`;
     this.dragEl.style.top = `${e.pageY - this.coordY}px`;
     const targetCard = document.elementFromPoint(e.clientX, e.clientY).closest(".cell");
     const cell1 = targetCard && targetCard.querySelector(".cards-container");  
-    const sibling = document.elementFromPoint(e.clientX, e.clientY).closest('.pinned__card');    
-    
+    const sibling = document.elementFromPoint(e.clientX, e.clientY).closest('.pinned__card');
     if (!cell1) {      
       return;
     }
-    
     if (cell1 && cell1.children.length > 0) {
       if (sibling) {
         const rect = sibling.getBoundingClientRect();
@@ -229,16 +206,17 @@ export default class CardController {
     if (!this.dragEl || !this.placeholder) { return; }
     e.preventDefault();
     document.body.style.cursor = 'auto';
-
-    const cellTarget = document.elementFromPoint(e.clientX, e.clientY).closest(".cell");
-    const targetCardCell = cellTarget && cellTarget.querySelector(".cards-container");  
-    
-    this.placeholder.classList.add('pinned__card');
-    this.placeholder.classList.remove('placeholder');
-
+    const drop = this.placeholder.cloneNode(true);
+    this.placeholder.parentNode.insertBefore(drop, this.placeholder);
+    drop.classList.remove('placeholder');    
+    drop.style.removeProperty('width');
+    drop.style.removeProperty('height');
+    drop.removeAttribute("style");
+    drop.classList.add('pinned__card');
+    this.placeholder.remove();
     const content = this.dragEl.innerHTML;
-    this.placeholder.innerHTML = content;
-  
+    drop.innerHTML = content;
+    this.dragLeave();  
     const columns = document.querySelectorAll('.cards-container');    
     const result = [];    
     columns.forEach(column => {
@@ -250,12 +228,10 @@ export default class CardController {
       result.push({ type, cards });
     });    
     this.storage.save(result);
-    this.dragLeave();
   }
   
   dragLeave() {
-    if (!this.dragEl) { return; }  
-    // this.dragEl.classList.remove('dragged');
+    if (!this.dragEl) { return; }
     this.dragEl.remove();
     this.dragEl = null;
   }
@@ -266,8 +242,8 @@ export default class CardController {
     pinCards.forEach((group) => {
       const type = group.type;
       const cards = group.cards;
-      cards.forEach((cardObj, index) => {
-        const template = card.constructor.template(cardObj.description, index, type);
+      cards.forEach((cardObj) => {
+        const template = card.constructor.template(cardObj.description);
         const matchingCells = Array.from(cells).filter(cell => cell.dataset.cell === type);
         matchingCells.forEach(cell => {
           cell.insertAdjacentHTML("beforeend", template);
@@ -275,5 +251,4 @@ export default class CardController {
       });
     });
   }
-
 }
