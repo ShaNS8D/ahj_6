@@ -164,6 +164,7 @@ export default class CardController {
     if (e.target.classList.contains("task__del")) return;
     const dragElement = e.target.closest(".pinned__card");
     if (!dragElement) return;
+
     e.preventDefault();
     document.body.style.cursor = "grabbing";
     this.dragEl = dragElement;
