@@ -7,9 +7,9 @@ export default class Card {
     this.bindToDOM(container);
   }
 
-  static template(task, id, type) {
+  static template(task) {
     return `
-      <div class="pinned__card" data-id="${id}_${type}">
+      <div class="pinned__card" >
         <span class="task__title">${task}</span>
         <button class="task__del hidden"></button>
       </div>
@@ -33,9 +33,6 @@ export default class Card {
       console.error("Задача не может быть пустой!");
       return false;
     }
-
-    const id = Date.now();
-    const type = "default";
-    return this.constructor.template(task, id, type);
+    return this.constructor.template(task);
   }
 }

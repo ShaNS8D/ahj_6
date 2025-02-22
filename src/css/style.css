@@ -6,7 +6,7 @@
 
 body {
   display: flex;
-  flex-wrap: wrap;
+  /* flex-wrap: wrap; */
   background: rgb(55, 145, 201);
   font-family: sans-serif;
   height: 100vh;
@@ -16,7 +16,7 @@ body {
   margin-top: 30px;
   padding: 25px;
   display: flex;
-  flex-wrap: wrap;
+  /* flex-wrap: wrap; */
   justify-content: space-between;
   align-items: baseline;
   width: 100%;
@@ -34,7 +34,7 @@ body {
   margin-left: 12px;
   padding: 8px;
   width: 30vw;
-  min-width: 350px;
+  /* min-width: 210px; */
 }
 
 .cell:not(:last-child) {
@@ -136,7 +136,7 @@ body {
   background: #d1c8ff;
   outline: none;
   cursor: pointer;
-  transition: 0.3s;
+  transition: 0.25s;
 }
 
 .form-button__del {
@@ -152,7 +152,7 @@ body {
   background: #d1c8ff;
   outline: none;
   cursor: pointer;
-  transition: 0.3s;
+  transition: 0.25s;
 }
 
 .form-button:hover,
@@ -205,7 +205,7 @@ body {
   background-size: contain;
   background-position: center;
   cursor: pointer;
-  transition: 0.3s;
+  transition: 0.25s;
 }
 
 .pinned__card.dragged {
@@ -234,5 +234,5 @@ body {
   height: 0; */
   z-index: 99;
   opacity: 0;
-  transition: all 0.35s ease-in-out;
+  transition: all 0.25s ease-in-out;
 }

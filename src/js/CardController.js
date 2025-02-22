@@ -202,7 +202,7 @@ export default class CardController {
     if (!targetCell) return;
     const targetCardsContainer = targetCell.querySelector(".cards-container");
     if (!targetCardsContainer) return;
-    const siblings = Array.from(targetCardsContainer.querySelectorAll(".pinned__card"));
+    const siblings = Array.from(targetCardsContainer.querySelectorAll(".pinned__card:not(.dragged)"));
     let insertBeforeElement = null;
     for (const sibling of siblings) {
       const rect = sibling.getBoundingClientRect();
@@ -212,7 +212,10 @@ export default class CardController {
         break;
       }
     }
-    if (insertBeforeElement) {
+    if (
+      insertBeforeElement &&
+      !insertBeforeElement.classList.contains("dragged")
+    ) {
       targetCardsContainer.insertBefore(this.placeholder, insertBeforeElement);
     } else {
       targetCardsContainer.appendChild(this.placeholder);
@@ -240,6 +243,7 @@ export default class CardController {
     this.dragEl = null;
     document.body.style.cursor = "auto";
     this.updateState();
+    this.cleanupEmptyTextNodes(targetCardCell);
   }
 
   dragLeave(e) {
@@ -247,6 +251,14 @@ export default class CardController {
     if (!this.container.contains(e.relatedTarget)) {
       this.returnToInitialPosition();
     }
+  }
+
+  cleanupEmptyTextNodes(container) {
+    Array.from(container.childNodes).forEach((node) => {
+      if (node.nodeType === Node.TEXT_NODE && !node.textContent.trim()) {
+        node.remove();
+      }
+    });
   }
 
   returnToInitialPosition() {
