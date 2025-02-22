@@ -24,8 +24,7 @@ export default class Board {
     <button class="button button_add">And another card</button>
 	</div>
 	<div class="cell cell-done" >
-		<h3 class="title">done</h3>
-		
+		<h3 class="title">done</h3>		
     <div class="cards-container" data-cell="done"></div>
     <button class="button button_add">And another card</button>
 	</div>
